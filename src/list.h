@@ -39,14 +39,12 @@
     (list)->items = malloc((list)->capacity * sizeof(*(list)->items));      \
   } while (0)
 
-#define list_free(list)                                                     \
-  do {                                                                      \
-    if ((list)->items != NULL) {                                            \
-      free((list)->items);                                                  \
-      (list)->items = NULL;                                                 \
-    }                                                                       \
-    (list)->count = 0;                                                      \
-    (list)->capacity = 0;                                                   \
+#define list_free(list)                                                   \
+  do {                                                                    \
+    free((list)->items);                                                  \
+    (list)->items = NULL;                                                 \
+    (list)->count = 0;                                                    \
+    (list)->capacity = 0;                                                 \
   } while (0)
 
 #define list_accomodate(list)                                                             \
