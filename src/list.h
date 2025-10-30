@@ -4,9 +4,9 @@
 #define LIST__H__
 
 #include <stdlib.h>
-#include <string.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 
 #define INLINE __attribute__((always_inline)) static inline
 
@@ -39,12 +39,12 @@
     (list)->items = malloc((list)->capacity * sizeof(*(list)->items));      \
   } while (0)
 
-#define list_free(list)                                                   \
-  do {                                                                    \
-    free((list)->items);                                                  \
-    (list)->items = NULL;                                                 \
-    (list)->count = 0;                                                    \
-    (list)->capacity = 0;                                                 \
+#define list_free(list)                                                     \
+  do {                                                                      \
+    free((list)->items);                                                    \
+    (list)->items = NULL;                                                   \
+    (list)->count = 0;                                                      \
+    (list)->capacity = 0;                                                   \
   } while (0)
 
 #define list_accomodate(list)                                                             \
@@ -159,5 +159,7 @@ INLINE bool LIST_CONTAINS_ITEM(void *items, size_t count, size_t item_size, void
   } while (0)
 
 #define list_clear(list) ((list)->count = 0)
+
+#undef INLINE
 
 #endif // LIST__H__
