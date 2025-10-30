@@ -4,14 +4,16 @@
 #include <stdbool.h>
 #include <math.h>
 #include <stdlib.h>
+#include "types.h"
+#include "list.h"
 
-typedef struct GateDesc GateDesc;
+typedef struct Gate Gate;
 typedef struct TruthTable TruthTable;
 
-typedef uint64_t (*Logic)(uint64_t);
+typedef u64 (*Logic)(u64);
 
 typedef enum {
-    IN,
+    WIRE,
     NOT,
     AND,
     OR,
@@ -21,83 +23,86 @@ typedef enum {
     XNOR,
 } GateType;
 
-struct GateDesc {
+struct Gate {
     size_t input_width;
     size_t output_width;
     Logic logic;
 };
 
 struct TruthTable {
-    uint64_t (*rows)[2];
+    u64 (*rows)[2];
     size_t size;
-    GateDesc gate;
+    Gate gate;
 };
 
+LIST_DEF(GateList, Gate);
+LIST_DEF(GateGraph, GateList);
+
 typedef struct {
-    int i;
+    GateGraph graph; 
 } Circuit;
 
-uint64_t not(uint64_t input)
+u64 not(u64 input)
 {
     return ~BIT_AT(input, 0);
 }
 
-uint64_t and(uint64_t input)
+u64 and(u64 input)
 {
     return BIT_AT(input, 0) & BIT_AT(input, 1);
 }
 
-uint64_t or(uint64_t input)
+u64 or(u64 input)
 {
     return BIT_AT(input, 0) | BIT_AT(input, 1);
 }
 
-uint64_t xor(uint64_t input)
+u64 xor(u64 input)
 {
     return BIT_AT(input, 0) ^ BIT_AT(input, 1);
 }
 
-uint64_t nand(uint64_t input)
+u64 nand(u64 input)
 {
     return ~(BIT_AT(input, 0) & BIT_AT(input, 1));
 }
 
-uint64_t nor(uint64_t input)
+u64 nor(u64 input)
 {
     return ~(BIT_AT(input, 0) | BIT_AT(input, 1));
 }
 
-uint64_t xnor(uint64_t input)
+u64 xnor(u64 input)
 {
     return ~(BIT_AT(input, 0) ^ BIT_AT(input, 1));
 }
 
-uint64_t in(uint64_t input)
+u64 in(u64 input)
 {
     return BIT_AT(input, 0);
 }
 
-uint64_t adder(uint64_t input)
+u64 adder(u64 input)
 {
-    uint64_t a = BIT_AT(input, 0);
-    uint64_t b = BIT_AT(input, 1);
-    uint64_t cin = BIT_AT(input, 2);
-    uint64_t output = 0;
-    uint64_t add1 = a ^ b;
-    uint64_t add2 = add1 ^ cin;
-    uint64_t cout = (a & b) | (cin & add1);
+    u64 a = BIT_AT(input, 0);
+    u64 b = BIT_AT(input, 1);
+    u64 cin = BIT_AT(input, 2);
+    u64 output = 0;
+    u64 add1 = a ^ b;
+    u64 add2 = add1 ^ cin;
+    u64 cout = (a & b) | (cin & add1);
     BIT_SET(output, 0, add2);
     BIT_SET(output, 1, cout);
     return output;
 }
 
-TruthTable generate_truthtable(GateDesc gate)
+TruthTable generate_truthtable(Gate gate)
 {
     TruthTable tt = {0};
     tt.gate = gate;
     tt.size = pow(2, gate.input_width);
     tt.rows = malloc(sizeof(*tt.rows) * tt.size);
-    uint64_t start = tt.size - 1;
+    u64 start = tt.size - 1;
 
     for (size_t i = 0; i < tt.size; i++) {
         tt.rows[i][0] = start - i; 
@@ -127,34 +132,34 @@ void print_truthtable(TruthTable* tt, const char *name)
     }
 }
 
-GateDesc gate(GateType type)
+Gate gate(GateType type)
 {
     switch (type) {
-        case IN:
-            return (GateDesc){.input_width = 1, .output_width = 1, .logic = in};
+        case WIRE:
+            return (Gate){.input_width = 1, .output_width = 1, .logic = in};
         case NOT:
-            return (GateDesc){.input_width = 1, .output_width = 1, .logic = not };
+            return (Gate){.input_width = 1, .output_width = 1, .logic = not };
         case AND:
-            return (GateDesc){.input_width = 2, .output_width = 1, .logic = and };
+            return (Gate){.input_width = 2, .output_width = 1, .logic = and };
         case OR:
-            return (GateDesc){.input_width = 2, .output_width = 1, .logic = or  };
+            return (Gate){.input_width = 2, .output_width = 1, .logic = or  };
         case XOR:
-            return (GateDesc){.input_width = 2, .output_width = 1, .logic = xor };
+            return (Gate){.input_width = 2, .output_width = 1, .logic = xor };
         case NAND:
-            return (GateDesc){.input_width = 2, .output_width = 1, .logic = nand};
+            return (Gate){.input_width = 2, .output_width = 1, .logic = nand};
         case NOR:
-            return (GateDesc){.input_width = 2, .output_width = 1, .logic = nor };
+            return (Gate){.input_width = 2, .output_width = 1, .logic = nor };
         case XNOR:
-            return (GateDesc){.input_width = 2, .output_width = 1, .logic = xnor};
+            return (Gate){.input_width = 2, .output_width = 1, .logic = xnor};
     }
 
-    return (GateDesc){0};
+    return (Gate){0};
 }
 
 void test_truthtables()
 {
-    TruthTable in_table = generate_truthtable(gate(IN));
-    print_truthtable(&in_table, "IN");
+    TruthTable in_table = generate_truthtable(gate(WIRE));
+    print_truthtable(&in_table, "WIRE");
     TruthTable not_table = generate_truthtable(gate(NOT));
     print_truthtable(&not_table, "NOT");
     TruthTable and_table = generate_truthtable(gate(AND));
@@ -169,13 +174,12 @@ void test_truthtables()
     print_truthtable(&nor_table, "NOR");
     TruthTable xnor_table = generate_truthtable(gate(XNOR));
     print_truthtable(&xnor_table, "XNOR");
-    GateDesc adder_gate = {.input_width = 3, .output_width = 2, .logic = adder};
+    Gate adder_gate = {.input_width = 3, .output_width = 2, .logic = adder};
     TruthTable adder_table = generate_truthtable(adder_gate);
     print_truthtable(&adder_table, "ADDER");
 }
 
 int main(void)
 {
-
     return 0;
 }
