@@ -7,9 +7,6 @@
 #include "types.h"
 #include "list.h"
 
-typedef struct Gate Gate;
-typedef struct TruthTable TruthTable;
-
 typedef u64 (*Logic)(u64);
 
 typedef enum {
@@ -23,22 +20,31 @@ typedef enum {
     XNOR,
 } GateType;
 
-struct Gate {
+typedef struct {
     size_t input_width;
     size_t output_width;
+    size_t i;
     Logic logic;
-};
+} Gate;
 
-struct TruthTable {
+LIST_DEF(GateList, Gate);
+LIST_DEF(GateWiring, Gate*);
+LIST_DEF(GateGraph, GateWiring);
+
+typedef struct {
     u64 (*rows)[2];
     size_t size;
     Gate gate;
-};
-
-LIST_DEF(GateList, Gate);
-LIST_DEF(GateGraph, GateList);
+} TruthTable;
 
 typedef struct {
+    GateList inputs;
+    GateList gates;
+    GateList outputs;
+} Blueprint;
+
+typedef struct {
+    Blueprint blueprint;
     GateGraph graph; 
 } Circuit;
 
@@ -136,24 +142,72 @@ Gate gate(GateType type)
 {
     switch (type) {
         case WIRE:
-            return (Gate){.input_width = 1, .output_width = 1, .logic = in};
+            return (Gate){.i = 0, .input_width = 1, .output_width = 1, .logic = in};
         case NOT:
-            return (Gate){.input_width = 1, .output_width = 1, .logic = not };
+            return (Gate){.i = 0, .input_width = 1, .output_width = 1, .logic = not };
         case AND:
-            return (Gate){.input_width = 2, .output_width = 1, .logic = and };
+            return (Gate){.i = 0, .input_width = 2, .output_width = 1, .logic = and };
         case OR:
-            return (Gate){.input_width = 2, .output_width = 1, .logic = or  };
+            return (Gate){.i = 0, .input_width = 2, .output_width = 1, .logic = or  };
         case XOR:
-            return (Gate){.input_width = 2, .output_width = 1, .logic = xor };
+            return (Gate){.i = 0, .input_width = 2, .output_width = 1, .logic = xor };
         case NAND:
-            return (Gate){.input_width = 2, .output_width = 1, .logic = nand};
+            return (Gate){.i = 0, .input_width = 2, .output_width = 1, .logic = nand};
         case NOR:
-            return (Gate){.input_width = 2, .output_width = 1, .logic = nor };
+            return (Gate){.i = 0, .input_width = 2, .output_width = 1, .logic = nor };
         case XNOR:
-            return (Gate){.input_width = 2, .output_width = 1, .logic = xnor};
+            return (Gate){.i = 0, .input_width = 2, .output_width = 1, .logic = xnor};
     }
 
     return (Gate){0};
+}
+
+Circuit half_adder_circuit()
+{
+    Circuit half_adder = {0};
+    Blueprint blueprint;
+    list_push(&blueprint.inputs, gate(WIRE));
+    list_push(&blueprint.gates, gate(XOR));
+    list_push(&blueprint.gates, gate(AND));
+    list_push(&blueprint.outputs, gate(WIRE));
+
+    GateWiring xor_wiring;
+    list_push(&xor_wiring, &blueprint.gates.items[0]);
+    list_push(&xor_wiring, &blueprint.inputs.items[0]);
+    list_push(&xor_wiring, &blueprint.outputs.items[0]);
+
+    GateWiring and_wiring;
+    list_push(&xor_wiring, &blueprint.gates.items[1]);
+    list_push(&xor_wiring, &blueprint.inputs.items[0]);
+    list_push(&xor_wiring, &blueprint.outputs.items[0]);
+
+    list_push(&half_adder.graph, xor_wiring);
+    list_push(&half_adder.graph, and_wiring);
+
+    return half_adder;
+}
+
+u64 wire_run(GateWiring *wiring, u64 input)
+{
+    u64 output = 0;
+
+
+    return output;
+}
+
+u64 circuit_run(Circuit *circuit, u64 input)
+{
+    u64 output = 0;
+    size_t output_i = 0;
+
+    for (size_t i = 0; i < circuit->graph.count; i++) {
+        GateWiring *wiring = &circuit->graph.items[i];
+        for (size_t i = 0; i < wiring->items[0]->input_width; i++) {
+            
+        }
+    }
+
+    return output;
 }
 
 void test_truthtables()
