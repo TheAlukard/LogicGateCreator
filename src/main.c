@@ -116,7 +116,13 @@ TruthTable generate_truthtable(Gate gate)
     return tt;
 }
 
-void print_truthtable(TruthTable* tt, const char *name)
+void destroy_truthtable(TruthTable *tt)
+{
+    free(tt->outputs);
+    tt->outputs = NULL;
+}
+
+void print_truthtable(TruthTable* tt, const char *name, bool destroy)
 {
     printf("'%s' Truth Table:\n", name);
     for (i64 i = tt->size - 1; i >= 0; i--) {
@@ -131,6 +137,8 @@ void print_truthtable(TruthTable* tt, const char *name)
         }
         printf("\n");
     }
+
+    if (destroy) destroy_truthtable(tt);
 }
 
 Gate gate(GateType type)
@@ -208,24 +216,24 @@ u64 circuit_run(Circuit *circuit, u64 input)
 void test_truthtables()
 {
     TruthTable wire_table = generate_truthtable(gate(WIRE));
-    print_truthtable(&wire_table, "WIRE");
+    print_truthtable(&wire_table, "WIRE", true);
     TruthTable not_table = generate_truthtable(gate(NOT));
-    print_truthtable(&not_table, "NOT");
+    print_truthtable(&not_table, "NOT", true);
     TruthTable and_table = generate_truthtable(gate(AND));
-    print_truthtable(&and_table, "AND");
+    print_truthtable(&and_table, "AND", true);
     TruthTable or_table = generate_truthtable(gate(OR));
-    print_truthtable(&or_table, "OR");
+    print_truthtable(&or_table, "OR", true);
     TruthTable xor_table = generate_truthtable(gate(XOR));
-    print_truthtable(&xor_table, "XOR");
+    print_truthtable(&xor_table, "XOR", true);
     TruthTable nand_table = generate_truthtable(gate(NAND));
-    print_truthtable(&nand_table, "NAND");
+    print_truthtable(&nand_table, "NAND", true);
     TruthTable nor_table = generate_truthtable(gate(NOR));
-    print_truthtable(&nor_table, "NOR");
+    print_truthtable(&nor_table, "NOR", true);
     TruthTable xnor_table = generate_truthtable(gate(XNOR));
-    print_truthtable(&xnor_table, "XNOR");
+    print_truthtable(&xnor_table, "XNOR", true);
     Gate adder_gate = {.input_width = 3, .output_width = 2, .logic = adder};
     TruthTable adder_table = generate_truthtable(adder_gate);
-    print_truthtable(&adder_table, "ADDER");
+    print_truthtable(&adder_table, "ADDER", true);
 }
 
 int main(void)
