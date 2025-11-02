@@ -83,7 +83,7 @@ u64 xnor(u64 input)
     return ~(BIT_AT(input, 0) ^ BIT_AT(input, 1));
 }
 
-u64 in(u64 input)
+u64 wire(u64 input)
 {
     return BIT_AT(input, 0);
 }
@@ -137,7 +137,7 @@ Gate gate(GateType type)
 {
     switch (type) {
         case WIRE:
-            return (Gate){.i = 0, .input_width = 1, .output_width = 1, .logic = in};
+            return (Gate){.i = 0, .input_width = 1, .output_width = 1, .logic = wire};
         case NOT:
             return (Gate){.i = 0, .input_width = 1, .output_width = 1, .logic = not };
         case AND:
@@ -207,8 +207,8 @@ u64 circuit_run(Circuit *circuit, u64 input)
 
 void test_truthtables()
 {
-    TruthTable in_table = generate_truthtable(gate(WIRE));
-    print_truthtable(&in_table, "WIRE");
+    TruthTable wire_table = generate_truthtable(gate(WIRE));
+    print_truthtable(&wire_table, "WIRE");
     TruthTable not_table = generate_truthtable(gate(NOT));
     print_truthtable(&not_table, "NOT");
     TruthTable and_table = generate_truthtable(gate(AND));
