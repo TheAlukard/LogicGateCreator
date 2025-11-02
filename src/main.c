@@ -32,7 +32,7 @@ LIST_DEF(GateWiring, Gate*);
 LIST_DEF(GateGraph, GateWiring);
 
 typedef struct {
-    u64 (*rows)[2];
+    u64 *outputs;
     size_t size;
     Gate gate;
 } TruthTable;
@@ -107,12 +107,10 @@ TruthTable generate_truthtable(Gate gate)
     TruthTable tt = {0};
     tt.gate = gate;
     tt.size = pow(2, gate.input_width);
-    tt.rows = malloc(sizeof(*tt.rows) * tt.size);
-    u64 start = tt.size - 1;
+    tt.outputs = (u64*)malloc(sizeof(*tt.outputs) * tt.size);
 
     for (size_t i = 0; i < tt.size; i++) {
-        tt.rows[i][0] = start - i; 
-        tt.rows[i][1] = gate.logic(start - i); 
+        tt.outputs[i] = gate.logic(i);
     }
 
     return tt;
@@ -121,18 +119,15 @@ TruthTable generate_truthtable(Gate gate)
 void print_truthtable(TruthTable* tt, const char *name)
 {
     printf("'%s' Truth Table:\n", name);
-    for (size_t i = 0; i < tt->size; i++) {
-        for (int j = tt->gate.input_width - 1; j >= 0; j--) {
-            printf("%lld | ", BIT_AT(tt->rows[i][0], j));
+    for (i64 i = tt->size - 1; i >= 0; i--) {
+        for (i64 j = tt->gate.input_width - 1; j >= 0; j--) {
+            printf("%llu ", BIT_AT(i, j));
+            printf("| ");
         }
         printf("=> ");
         for (size_t j = 0; j < tt->gate.output_width; j++) {
-            if (j < tt->gate.output_width - 1) {
-                printf("%lld | ", BIT_AT(tt->rows[i][1], j));
-            }
-            else {
-                printf("%lld", BIT_AT(tt->rows[i][1], j));
-            }
+            printf("%llu ", BIT_AT(tt->outputs[i], j));
+            if (j < tt->gate.output_width - 1) printf("| ");
         }
         printf("\n");
     }
@@ -235,5 +230,7 @@ void test_truthtables()
 
 int main(void)
 {
+    test_truthtables();
+
     return 0;
 }
