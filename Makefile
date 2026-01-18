@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-O3 -Werror -pedantic
+CFLAGS=-O3 -Werror -pedantic -lm
 SRC=$(shell ls ./src/*.c)
 EXEC=./build/lgc
 
